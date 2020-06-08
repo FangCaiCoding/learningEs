@@ -1,7 +1,6 @@
 package com.fangcai.es.common.dto;
 
 import com.fangcai.es.common.enums.SortFieldEnum;
-import com.fangcai.es.common.enums.SortTypeEnum;
 import lombok.Data;
 import org.elasticsearch.search.sort.SortOrder;
 

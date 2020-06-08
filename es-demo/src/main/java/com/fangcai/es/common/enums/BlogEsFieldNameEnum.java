@@ -19,6 +19,8 @@ public enum BlogEsFieldNameEnum {
 
     TAG("tag"),
 
+    TAG_KEYWORD("tag.keyword"),
+
     VOTE("vote"),
 
     VIEW("view"),

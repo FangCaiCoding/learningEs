@@ -19,7 +19,6 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -40,7 +39,8 @@ import java.util.Map;
 /**
  * @author MouFangCai
  * @date 2019/12/9 10:52
- * @description
+ * @description es 数据的 CURD API
+ *  API 可参考官网：https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.7/java-rest-high.html
  */
 @Component
 public class EsUtil {
@@ -52,7 +52,7 @@ public class EsUtil {
     @Autowired
     private RestHighLevelClient esClient;
 
-    private static int limit = 3;
+    private static int retryLimit = 3;
 
 
     private String getESId(Object obj) {
@@ -71,7 +71,6 @@ public class EsUtil {
      * @return PageResponse<T>
      */
     public <T> PageResponse<T> search(String index, SearchSourceBuilder searchSourceBuilder, Class<T> clazz, Integer pageNum, Integer pageSize){
-        SearchSourceBuilder s = new SearchSourceBuilder();
 
         SearchRequest searchRequest = new SearchRequest(index);
         searchRequest.source(searchSourceBuilder);
@@ -91,7 +90,8 @@ public class EsUtil {
             pageResponse.setData(dataList);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute searching,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute searching,because of " + e.getMessage());
         }
         return pageResponse;
     }
@@ -102,12 +102,10 @@ public class EsUtil {
      * @param index
      * @param searchSourceBuilder
      * @param aggName 聚合名
-     * @param pageNum
-     * @param pageSize
      * @return Map<Integer, Long>  key:aggName   value: doc_count
      */
     public Map<Integer, Long> search(String index, SearchSourceBuilder searchSourceBuilder,
-                                     String aggName, Integer pageNum, Integer pageSize){
+                                     String aggName){
         SearchRequest searchRequest = new SearchRequest(index);
         
         searchRequest.source(searchSourceBuilder);
@@ -143,10 +141,10 @@ public class EsUtil {
     public Boolean addDocToEs(Object obj, String index){
 
         try {
-            IndexRequest indexRequest = new IndexRequest(index, getESId(obj))
+            IndexRequest indexRequest = new IndexRequest(index).id(getESId(obj))
                     .source(JSON.toJSONString(obj), XContentType.JSON);
             int times = 0;
-            while (times < limit) {
+            while (times < retryLimit) {
                 IndexResponse indexResponse = esClient.index(indexRequest, RequestOptions.DEFAULT);
 
                 if (indexResponse.status().equals(RestStatus.CREATED) || indexResponse.status().equals(RestStatus.OK)) {
@@ -159,7 +157,8 @@ public class EsUtil {
             return false;
         } catch (Exception e) {
             logger.error("Object = {}, index = {}, id = {} , exception = {}", obj, index, getESId(obj) , e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute add doc,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute add doc,because of " + e.getMessage());
         }
 
     }
@@ -172,26 +171,32 @@ public class EsUtil {
      * @return
      */
     public Boolean updateDocToEs(Object obj, String index){
-        try {
-            UpdateRequest request = new UpdateRequest(index,  getESId(obj))
-                    .doc(JSON.toJSONString(obj), XContentType.JSON);
-
-            int times = 0;
-            while (times < limit) {
-                UpdateResponse update = esClient.update(request, RequestOptions.DEFAULT);
-
-                if (update.status().equals(RestStatus.OK)) {
-                    return true;
-                } else {
-                    logger.info(JSON.toJSONString(update));
-                    times++;
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            logger.error("Object = {}, index = {},exception = {}", obj, index, e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute update doc,because of " + e.getMessage());
-        }
+        /**
+         * 对于更新文档，建议可以直接使用新增文档的API，
+         * 避免因对应id的doc不存在而抛异常：document_missing_exception
+         */
+        return addDocToEs(obj,index);
+        //try {
+        //    UpdateRequest request = new UpdateRequest(index,  getESId(obj))
+        //            .doc(JSON.toJSONString(obj), XContentType.JSON);
+        //
+        //    int times = 0;
+        //    while (times < retryLimit) {
+        //        UpdateResponse update = esClient.update(request, RequestOptions.DEFAULT);
+        //
+        //        if (update.status().equals(RestStatus.OK)) {
+        //            return true;
+        //        } else {
+        //            logger.info(JSON.toJSONString(update));
+        //            times++;
+        //        }
+        //    }
+        //    return false;
+        //} catch (Exception e) {
+        //    logger.error("Object = {}, index = {},exception = {}", obj, index, e.getMessage());
+        //    throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+        //            "error to execute update doc,because of " + e.getMessage());
+        //}
     }
 
 
@@ -201,12 +206,12 @@ public class EsUtil {
      * @param id
      * @return
      */
-    public Boolean deleteDocToEs(String index, Integer id) {
+    public Boolean deleteDocToEs(Integer id, String index) {
         try {
             DeleteRequest request = new DeleteRequest(index, id.toString());
 
             int times = 0;
-            while (times < limit) {
+            while (times < retryLimit) {
                 DeleteResponse delete = esClient.delete(request, RequestOptions.DEFAULT);
 
                 if (delete.status().equals(RestStatus.OK)) {
@@ -216,11 +221,11 @@ public class EsUtil {
                     times++;
                 }
             }
-
             return false;
         } catch (Exception e) {
             logger.error("index = {}, id = {} , exception = {}", index, id , e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute update doc,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute update doc,because of " + e.getMessage());
         }
     }
 
@@ -237,7 +242,7 @@ public class EsUtil {
         try {
             BulkRequest request = new BulkRequest();
             for (Object obj : array) {
-                IndexRequest indexRequest = new IndexRequest(index,getESId(obj))
+                IndexRequest indexRequest = new IndexRequest(index).id(getESId(obj))
                         .source(JSON.toJSONString(obj), XContentType.JSON);
                 request.add(indexRequest);
             }
@@ -246,7 +251,8 @@ public class EsUtil {
             return bulk.status().equals(RestStatus.OK);
         } catch (Exception e) {
             logger.error("index = {}, exception = {}", index, e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute batch add doc,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute batch add doc,because of " + e.getMessage());
         }
     }
 
@@ -254,15 +260,15 @@ public class EsUtil {
     /**
      * 批量更新
      *
+     * @param array 完整的obj的List
      * @param index
      * @return
      */
     public Boolean batchUpdateToEs(JSONArray array, String index){
         try {
             BulkRequest request = new BulkRequest();
-            for (int i = 0; i < array.size(); i++) {
-                Object obj = array.get(i);
-                UpdateRequest updateRequest = new UpdateRequest(index,  getESId(obj))
+            for (Object obj : array) {
+                UpdateRequest updateRequest = new UpdateRequest(index, getESId(obj))
                         .doc(JSON.toJSONString(obj), XContentType.JSON);
                 request.add(updateRequest);
             }
@@ -271,13 +277,15 @@ public class EsUtil {
             return bulk.status().equals(RestStatus.OK);
         } catch (Exception e) {
             logger.error("index = {}, exception = {}", index, e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute batch update doc,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute batch update doc,because of " + e.getMessage());
         }
     }
 
+
     /**
      * 批量删除
-     *
+     * @param deleteIds 待删除的 _id list
      * @param index
      * @return
      */
@@ -293,7 +301,8 @@ public class EsUtil {
             return bulk.status().equals(RestStatus.OK);
         } catch (Exception e) {
             logger.error("index = {}, exception = {}", index, e.getMessage());
-            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST), "error to execute batch update doc,because of " + e.getMessage());
+            throw new EsDemoException(String.valueOf(HttpStatus.BAD_REQUEST),
+                    "error to execute batch update doc,because of " + e.getMessage());
         }
     }
 }

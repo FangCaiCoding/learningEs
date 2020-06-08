@@ -119,7 +119,7 @@ public class BlogServiceImpl implements BlogService {
                     filter.getFilterAuthor()));
         }
         if (! filter.getFilterTags().isEmpty()) {
-            boolFilter.filter(QueryBuilders.termsQuery(BlogEsFieldNameEnum.TAG.getFieldName(),
+            boolFilter.filter(QueryBuilders.termsQuery(BlogEsFieldNameEnum.TAG_KEYWORD.getFieldName(),
                     filter.getFilterTags()));
         }
         if (filter.getFilterCreateAt() != null) {
@@ -191,24 +191,4 @@ public class BlogServiceImpl implements BlogService {
                 Blog.class, pageNum, pageSize);
     }
 
-
-    public static void main (String[] args) {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        MultiMatchQueryBuilder multiMatchQuery = QueryBuilders.multiMatchQuery("dfd",
-                BlogEsFieldNameEnum.TITLE.getFieldName(),
-                BlogEsFieldNameEnum.CONTENT.getFieldName(),
-                BlogEsFieldNameEnum.TAG.getFieldName());
-        searchSourceBuilder.query(multiMatchQuery);
-        System.out.println(JSON.toJSONString(multiMatchQuery));
-        System.out.println(22222222);
-        QueryRescorerBuilder queryRescorerBuilder = new QueryRescorerBuilder(
-                multiMatchQuery.type(MultiMatchQueryBuilder.Type.PHRASE));
-        System.out.println(JSON.toJSONString(multiMatchQuery));
-
-        searchSourceBuilder.addRescorer(queryRescorerBuilder);
-
-        System.out.println(JSON.toJSONString(searchSourceBuilder.query()));
-        System.out.println("1111111111111");
-        System.out.println(JSON.toJSONString(queryRescorerBuilder));
-    }
 }

@@ -36,5 +36,8 @@ public class Blog {
 
     private Integer view;
 
-    private Date createAt;
+    /**
+     * format: yyyy-MM-dd HH:mm
+     */
+    private String createAt;
 }

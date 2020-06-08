@@ -34,7 +34,7 @@ public class GlobalExceptionController {
     @ExceptionHandler (EsDemoException.class)
     @ResponseStatus (HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseMsg EsDemoException(EsDemoException ex){
-        return new ResponseMsg(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), null, ex.getMessage());
+        return new ResponseMsg(ex.getCode(), null, ex.getMsg());
     }
 
 
