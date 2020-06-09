@@ -1,7 +1,7 @@
 server:
   port: 6700
 
-# ¹Ø±Õ es ½¡¿µ¼ì²é
+# å…³é—­eså¥åº·æ£€æŸ¥
 management:
   health:
     elasticsearch:
@@ -10,9 +10,9 @@ management:
 spring:
   data:
     elasticsearch:
-      nodes: 192.168.0.9:9200
+      nodes: 192.168.1.181:9200 # esåœ°å€
       repositories:
         enabled: true
-    # ¿ªÆô es ½¡¿µ¼ì²é
-    rest:
-      uris: ["http://192.168.0.9:9200"]
+    # å¼€å¯eså¥åº·æ£€æŸ¥
+#    rest:
+#      uris: ["http://192.168.1.181:9200"]

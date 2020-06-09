@@ -1,0 +1,191 @@
+检索场景简介及DSL
+1、根据 title 、content 、tag 进行简单检索，使用rescore利用match_phrase重新算分排序；
+2、提升 tag 的权重为3，title的权重为2，使用默认排序；
+3、在2的基础上增加过滤条件：author、tag、createAt、influence
+4、在3的基础上用户指定排序条件：createAt、vote、view
+
+
+# 场景1
+GET /demo1_blog/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "系统学习ElasticSearch",
+      "fields": [
+        "title",
+        "content",
+        "tag"
+      ]
+    }
+  },
+  "rescore": {
+    "query": {
+      "rescore_query": {
+        "multi_match": {
+          "query": "系统学习ElasticSearch",
+          "fields": [
+            "title",
+            "content",
+            "tag"
+          ],
+          "type": "phrase"
+        }
+      }
+    },
+    "window_size": 10
+  }
+}
+
+# 场景2
+GET /demo1_blog/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "系统学习ElasticSearch",
+      "fields": [
+         "title^2",
+            "content",
+            "tag^3"
+      ]
+    }
+  }
+}
+# 等价于
+GET /demo1_blog/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match": {
+            "tag": {
+              "query": "系统学习ElasticSearch",
+              "boost": 3
+            }
+          }
+        },
+                {
+          "match": {
+            "title": {
+              "query": "系统学习ElasticSearch",
+              "boost": 2
+            }
+          }
+        },
+                {
+          "match": {
+            "content": {
+              "query": "系统学习ElasticSearch",
+              "boost": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+# 场景3
+GET /demo1_blog/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {    "multi_match": {
+      "query": "系统学习ElasticSearch",
+      "fields": [
+         "title^2",
+            "content",
+            "tag^3"
+      ]
+    }}
+      ],
+      "filter": [
+        {
+          "term": {
+            "author": "方才兄"
+          }
+        },
+       {
+         "terms":{
+           "tag.keyword":["ElasticSearch","倒排序索引"]
+         }
+        },
+        {
+          "range": {
+            "createAt": {
+              "gte": "now-3M/d",
+              "lte": "now"
+            }
+          }
+        }
+        ,
+        {
+          "range": {
+            "influence": {
+              "gte": 5,
+              "lte": 15,
+               "relation" : "within"
+            }
+          }
+        }
+      ]
+    }
+
+  }
+}
+
+
+# 场景4
+GET /demo1_blog/_search
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "multi_match": {
+            "query": "系统学习ElasticSearch",
+            "fields": [
+              "title^2",
+              "content",
+              "tag^3"
+            ]
+          }
+        },
+        {
+          "term": {
+            "author": "方才兄"
+          }
+        },
+       {
+         "terms":{
+           "tag.keyword":["ElasticSearch","倒排序索引"]
+         }
+        },
+        {
+          "range": {
+            "createAt": {
+              "gte": "now-3M/d",
+              "lte": "now"
+            }
+          }
+        },
+        {
+          "range": {
+            "influence": {
+              "gte": 10,
+              "lte": 15
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sort": [
+    {
+      "view": {
+        "order": "desc"
+      }
+    }
+  ]
+}

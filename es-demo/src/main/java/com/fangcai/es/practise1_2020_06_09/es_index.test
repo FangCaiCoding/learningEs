@@ -1,0 +1,66 @@
+# 1）创建索引
+PUT /demo1_blog
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    }
+  },
+  "mappings": {
+    "dynamic": false,
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "author": {
+        "type": "keyword"
+      },
+      "influence": {
+        "type": "integer_range"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "ik_smart"
+      },
+      "tag": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "fields": {
+          "keyword":{
+            "type":"keyword"
+          }
+        }
+      },
+      "vote": {
+        "type": "integer"
+      },
+      "view": {
+        "type": "integer"
+      },
+      "createAt": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm"
+      }
+    }
+  }
+}
+
+# 2）导入数据
+POST _bulk
+{"index":{"_index":"demo1_blog","_id":"1"}}
+{"id":1,"author":"方才兄","influence":{"gte":10,"lte":12},"title":"ElasticSearch系列01：如何系统学习ES","content":"最后附上小编的学习记录图，后续小编会持续输出ElasticSearch技术系列文章，欢迎关注，共同探讨学习。","tag":["ElasticSearch","入门学习"],"vote":10,"view":100,"createAt":"2020-04-24 10:56"}
+{"index":{"_index":"demo1_blog","_id":"2"}}
+{"id":2,"author":"方才兄","influence":{"gte":10,"lte":12},"title":"ElasticSearch系列05：倒排序索引与分词Analysis","content":"系统学习ES】一、 倒排索引是什么？倒排索引是 Elasticsearch 中非常重要的索引结构，是从文档单词到文档 ID 的映射过程","tag":["倒排序索引","分词Analysis"],"vote":9,"view":90,"createAt":"2020-05-17 10:56"}
+{"index":{"_index":"demo1_blog","_id":"3"}}
+{"id":3,"author":"学堂","influence":{"gte":5,"lte":8},"title":"ElasticSearch安装以及和SpringBoot的整合","content":"自己正好学习一下，ElasticSearch也是nosql中的一种","tag":["ElasticSearch安装","springBoot整合"],"vote":0,"view":61,"createAt":"2020-06-01 10:56"}
+{"index":{"_index":"demo1_blog","_id":"4"}}
+{"id":4,"author":"阿里云","influence":{"gte":20,"lte":35},"title":"使用ElasticSearch快速搭建检索系统","content":"一个好的搜索系统可以直接促进页面的访问量提升","tag":["ElasticSearch","检索系统"],"vote":30,"view":200,"createAt":"2020-02-24 10:56"}
+{"index":{"_index":"demo1_blog","_id":"5"}}
+{"id":5,"author":" 铭毅天下","influence":{"gte":15,"lte":20},"title":"Elasticsearch学习，请先看这一篇！","content":"Elasticsearch研究有一段时间了，现特将Elasticsearch相关核心知识、原理从初学者认知、学习的角度，从以下9个方面进行详细梳理。","tag":["ElasticSearch","核心知识"],"vote":30,"view":4200,"createAt":"2020-06-04 10:56"}
+{"index":{"_index":"demo1_blog","_id":"6"}}
+{"id":6,"author":" 方才兄","influence":{"gte":15,"lte":20},"title":"Elasticsearch系列13：彻底掌握相关度","content":"最后，如果你有更好的相关度控制方式，或者在es的学习过程中有疑问，欢迎加入es交流群，和大家一起系统学习ElasticSearch。","tag":["ES","相关度"],"vote":10,"view":170,"createAt":"2020-06-08 10:56"}
