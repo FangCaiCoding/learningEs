@@ -1,17 +1,18 @@
 # 系统学习ELasticSearch
 
 #### 介绍
-系统学习ELasticSearch。ES相关知识讲解，请移步公众号【方才编程】
+系统学习ElasticSearch，请移步微信公众号【方才编程】
+![一键直达](D:\111coding\00WeChat-demo\elasticsearch-learning\es-demo\src\main\java\com\fangcai\es\practise1_2020_06_09\公号二维码.jpg)
 
 #### 软件架构
-软件架构说明
+SpringBoot 2.3.0
+ElasticSearch 7.7.1
 
 
-#### 安装教程
+#### demo说明
+本文基于ES 7.7，通过搭建博客搜索系统，快速掌握RestHighLevelClient的使用，同时结合4个博客检索场景，巩固之前所学的全文搜索和基于词项的Term lever Queries，使用Bool query 完成复杂检索，并应用相关度知识对相关性评分进行控制。【看完本文，你也可以快速搭建一个搜索系统】
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+
 
 #### 使用说明
 
