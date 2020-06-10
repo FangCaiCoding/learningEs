@@ -2,7 +2,7 @@
 
 #### 介绍
 系统学习ElasticSearch，请移步微信公众号【方才编程】
-![image](https://gitee.com/moufangcai/learningEs/blob/master/es-demo/src/main/java/com/fangcai/es/practise1_2020_06_09/%E5%85%AC%E5%8F%B7%E4%BA%8C%E7%BB%B4%E7%A0%81.jpg)
+
 
 #### 软件架构
 SpringBoot 2.3.0
